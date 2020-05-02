@@ -1,4 +1,5 @@
 import express from 'express';
+const isImageUrl = require('is-image-url');
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
@@ -13,7 +14,8 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   // Use the body parser middleware for post requests
   app.use(bodyParser.json());
 
-  // @TODO1 IMPLEMENT A RESTFUL ENDPOINT
+
+// @TODO1 IMPLEMENT A RESTFUL ENDPOINT
   // GET /filteredimage?image_url={{URL}}
   // endpoint to filter an image from a public url.
   // IT SHOULD
@@ -30,7 +32,40 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   /**************************************************************************** */
 
   //! END @TODO1
+
+  app.get( "/filteredimage", async ( req, res ) => {
+    let {image_url}=req.query;
+    if(!image_url){
+      return res.send("URL not provided")
+    }    
+    filterImageFromURL(image_url)
+    .then(function(url){
+      const a=url.split("/");
+      res.status(200).sendFile(url,()=>{
+        deleteLocalFiles([url]);
+
+      })
+    }).catch(err=>{res.status(404).send('URL is not an appropriate image URL.Please try again!')})
+  } );
+    // res.status(200).sendFile(filteredurl,()=>
+    // {
+    //   const a=filteredurl.split("/");
+    //   deleteLocalFiles(['src/util/tmp/'+a[a.length-1]]);
+
+    // })
+    //   //console.log('src/util/tmp/'+a[a.length-1]);
   
+  
+// Another way to send file and then delete the file locally is-
+//const filteredurl= filterImageFromURL(image_url); This will return a promise,we can use then function to work
+// with the value that this promise returns.
+// filteredurl.then(function(url){
+    //   const a=url.split("/");
+    //   res.sendFile(url,()=>{
+    //     deleteLocalFiles(['src/util/tmp/'+a[a.length-1]]);
+    //   });
+    
+
   // Root Endpoint
   // Displays a simple message to the user
   app.get( "/", async ( req, res ) => {
